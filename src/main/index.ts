@@ -2,6 +2,14 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { Server } from 'socket.io'
+import { createServer } from 'node:http'
+import liveServer from 'live-server'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let httpServer: any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let socketServer: any
 
 function createWindow(): void {
   // Create the browser window.
@@ -19,6 +27,34 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.openDevTools({ mode: 'detach' })
+
+  // 创建Socket.IO服务器
+  if (!httpServer) httpServer = createServer()
+  //将HTTP服务器注入到WebSocket服务器
+  if (!socketServer) {
+    socketServer = new Server(httpServer, {
+      cors: {
+        origin: '*'
+      }
+    })
+    //指定HTTP的监听端口
+    socketServer.listen(5000)
+  }
+
+  // 启动本地服务
+  liveServer.start({
+    port: 9999, // Set the server port. Defaults to 8080.
+    host: '0.0.0.0', // Set the address to bind to. Defaults to 0.0.0.0 or process.env.IP.
+    // root: './dist-frontend',
+    root: app.isPackaged ? './resources/dist-frontend' : './dist-frontend', // Set root directory that's being served. Defaults to cwd.
+    open: true // When false, it won't load your browser by default.
+  })
+
+  // 监听渲染层消息
+  ipcMain.handle('text_message', (_, text) => {
+    socketServer.emit('socket_message', text)
+    return 'got it'
+  })
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
