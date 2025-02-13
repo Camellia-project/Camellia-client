@@ -3,6 +3,8 @@
   "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*"],
   "compilerOptions": {
     "composite": true,
+    // I use this option for electron.vite.config.ts having a type problem
+    "moduleResolution": "bundler",
     "types": ["electron-vite/node"]
   }
 }
