@@ -1,10 +1,10 @@
 {
   "name": "camellia-client",
-  "version": "1.0.0",
-  "description": "An Electron application with Vue and TypeScript",
+  "version": "0.0.1",
+  "description": "plug-in for silent VTuber",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "Camellia-project",
+  "homepage": "",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue --fix",
