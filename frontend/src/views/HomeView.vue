@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
-const message = ref('hello world')
+import Typed from 'typed.js'
+
 let socket: Socket | null = null
+let typeJS: Typed | null = null
 onMounted(() => {
   socket = io('http://localhost:5000')
   socket.on('connect', () => {
@@ -11,11 +13,29 @@ onMounted(() => {
   })
   socket.on('socket_message', (data) => {
     console.log(data)
-    message.value = data
+    typeJS?.destroy()
+    typeJS = new Typed('#typed', {
+      strings: [data],
+      typeSpeed: 50, //打字的速度
+      cursorChar: ' ▼',
+    })
+  })
+  typeJS = new Typed('#typed', {
+    strings: ['Hello world'],
+    typeSpeed: 50,
+    cursorChar: ' ▼',
   })
 })
 </script>
 
 <template>
-  <div>{{ message }}</div>
+  <div class="home_view">
+    <span id="typed"></span>
+  </div>
 </template>
+
+<style scoped lang="scss">
+.home_view{
+  display: flex;
+}
+</style>
