@@ -56,6 +56,16 @@ function createWindow(): void {
     return 'got it'
   })
 
+  app.on('second-instance', () => {
+    // 如果主窗口存在，恢复并聚焦它
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+    // 处理第二个实例的命令行参数，例如打开一个文件
+    // 省略具体处理逻辑
+  })
+
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
@@ -79,7 +89,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.camelliaProject')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -89,9 +99,17 @@ app.whenReady().then(() => {
   })
 
   // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  // ipcMain.on('ping', () => console.log('pong'))
 
-  createWindow()
+  // 尝试获取单实例锁
+  const gotTheLock = app.requestSingleInstanceLock()
+  // 如果获取失败，说明已经有一个实例在运行，直接退出
+  if (!gotTheLock) {
+    app.quit()
+  } else {
+    // 如果获取成功，创建主窗口
+    createWindow()
+  }
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

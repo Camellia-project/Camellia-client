@@ -1,6 +1,7 @@
-appId: com.electron.app
-productName: camellia-client
+appId: com.camelliaProject.camellia
+productName: Camellia
 directories:
+  output: release/${version}
   buildResources: build
 files:
   - '!**/.vscode/*'
@@ -9,6 +10,9 @@ files:
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+extraResources:  # ! 新增前端资源部署
+  - from: ./dist-frontend/
+    to: dist-frontend
 asarUnpack:
   - resources/**
 win:
@@ -18,6 +22,10 @@ nsis:
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  oneClick: false
+  perMachine: true
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
