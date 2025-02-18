@@ -36,6 +36,11 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .home_view{
+  box-sizing: border-box;
   display: flex;
+  height: 200px;
+  width: 100%;
+  background: skyblue;
+  padding: 20px;
 }
 </style>
