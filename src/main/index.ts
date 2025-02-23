@@ -26,7 +26,7 @@ function createWindow(): void {
     }
   })
 
-  mainWindow.webContents.openDevTools({ mode: 'detach' })
+  // mainWindow.webContents.openDevTools({ mode: 'detach' })
 
   // 创建Socket.IO服务器
   if (!httpServer) httpServer = createServer()
@@ -45,7 +45,6 @@ function createWindow(): void {
   liveServer.start({
     port: 9999, // Set the server port. Defaults to 8080.
     host: '0.0.0.0', // Set the address to bind to. Defaults to 0.0.0.0 or process.env.IP.
-    // root: './dist-frontend',
     root: app.isPackaged ? './resources/dist-frontend' : './dist-frontend', // Set root directory that's being served. Defaults to cwd.
     open: true // When false, it won't load your browser by default.
   })
@@ -54,6 +53,11 @@ function createWindow(): void {
   ipcMain.handle('text_message', (_, text) => {
     socketServer.emit('socket_message', text)
     return 'got it'
+  })
+
+  // 处理音频识别请求
+  ipcMain.handle('recognize-audio', async (_, audioData: Float32Array) => {
+    console.log(audioData)
   })
 
   app.on('second-instance', () => {
