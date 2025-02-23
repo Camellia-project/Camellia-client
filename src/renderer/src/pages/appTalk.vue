@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import Recorder from '@renderer/components/Recorder.vue'
 
 const text = ref('')
 const getText = async () => {
@@ -18,6 +19,7 @@ const getText = async () => {
       placeholder="关注桐桐桐桐魚，关注桐桐桐桐魚谢谢喵！"
       @keydown.enter="getText"
     />
+    <Recorder />
   </div>
 </template>
 

@@ -25,6 +25,7 @@
     "@electron-toolkit/utils": "^3.0.0",
     "electron-updater": "^6.1.7",
     "live-server": "^1.2.2",
+    "nodejs-whisper": "^0.2.6",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {

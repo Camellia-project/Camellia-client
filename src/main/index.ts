@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import { Server } from 'socket.io'
 import { createServer } from 'node:http'
 import liveServer from 'live-server'
+import { useWhisper } from './whisper'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let httpServer: any
@@ -58,6 +59,12 @@ function createWindow(): void {
   // 处理音频识别请求
   ipcMain.handle('recognize-audio', async (_, audioData: Float32Array) => {
     console.log(audioData)
+    const text = await useWhisper()
+    console.log(text)
+    socketServer.emit(
+      'socket_message',
+      text.replace(/\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}]\s*/g, '')
+    )
   })
 
   app.on('second-instance', () => {
