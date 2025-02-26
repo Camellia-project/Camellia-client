@@ -1,29 +1,50 @@
 import path from 'path'
-import { nodewhisper } from 'nodejs-whisper'
+import { WaveFile } from 'wavefile'
+import * as os from 'node:os'
+import * as fs from 'node:fs'
+import { promisify } from 'node:util'
+import whisperNode from '/resources/whisper/whisper.node'
 
-// Need to provide exact path to your audio file.
-const filePath = path.resolve('./resources/mother_teresa.wav')
+const modelPath = path.resolve('./resources/models/ggml-tiny.bin')
 
-export const useWhisper = async () => {
-  return await nodewhisper(filePath, {
-    modelName: 'base', //Downloaded models name
-    autoDownloadModelName: 'base', // (optional) autodownload a model if model is not present
-    removeWavFileAfterTranscription: false, // (optional) remove wav file once transcribed
-    withCuda: false, // (optional) use cuda for faster processing
-    logger: console, // (optional) Logging instance, defaults to console
-    whisperOptions: {
-      outputInCsv: false, // get output result in csv file
-      outputInJson: false, // get output result in json file
-      outputInJsonFull: false, // get output result in json file including more information
-      outputInLrc: false, // get output result in lrc file
-      outputInSrt: false, // get output result in srt file
-      outputInText: false, // get output result in txt file
-      outputInVtt: false, // get output result in vtt file
-      outputInWords: false, // get output result in wts file for karaoke
-      translateToEnglish: false, // translate from source language to english
-      wordTimestamps: false, // word-level timestamps
-      timestamps_length: 20, // amount of dialogue per timestamp pair
-      splitOnWord: false // split on word rather than on token
-    }
-  })
+export const useWhisper = async (audioData: Uint8Array) => {
+  console.log('Received audio length:', audioData.length)
+  console.log('First 4 bytes:', Buffer.from(audioData.slice(0, 4)).toString('hex')) // 应输出"52494646"（RIFF）
+  // 1. 创建 Wave 文件对象
+  const file = new WaveFile(audioData)
+
+  // 2. 转换为 WAV 格式缓冲区
+  const wavBuffer = file.toBuffer()
+
+  // 3. 生成唯一临时文件路径（防冲突）
+  const tempFilePath = path.join(
+    os.tmpdir(), // 使用系统临时目录
+    `whisper-${Date.now()}-${Math.random().toString(36).slice(2)}.wav` // 随机文件名
+  )
+  console.log(tempFilePath)
+  // 4. 将音频数据写入临时文件
+  fs.writeFileSync(tempFilePath, wavBuffer)
+
+  const { whisper } = whisperNode
+  const whisperAsync = promisify(whisper)
+
+  console.log('model_path', modelPath)
+  console.log('fname_inp', tempFilePath)
+
+  // 基础配置
+  const whisperParams = {
+    language: 'auto',
+    model: modelPath,
+    fname_inp: tempFilePath,
+    use_gpu: true,
+    flash_attn: false,
+    no_prints: true,
+    comma_in_time: false,
+    translate: false,
+    no_timestamps: true,
+    audio_ctx: 0,
+    max_len: 0
+  }
+  const result: string[][] = await whisperAsync(whisperParams)
+  return result.reduce((pre, cur) => pre + (cur[2] || ''), '')
 }

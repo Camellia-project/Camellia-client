@@ -6,6 +6,7 @@ import { Server } from 'socket.io'
 import { createServer } from 'node:http'
 import liveServer from 'live-server'
 import { useWhisper } from './whisper'
+// import { useWhisper } from './whisper'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let httpServer: any
@@ -23,7 +24,8 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      nodeIntegration: true // 确保启用 Node 集成
     }
   })
 
@@ -57,13 +59,13 @@ function createWindow(): void {
   })
 
   // 处理音频识别请求
-  ipcMain.handle('recognize-audio', async (_, audioData: Float32Array) => {
+  ipcMain.handle('recognize-audio', async (_, audioData: Uint8Array) => {
     console.log(audioData)
-    const text = await useWhisper()
+    const text = await useWhisper(audioData)
     console.log(text)
     socketServer.emit(
       'socket_message',
-      text.replace(/\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}]\s*/g, '')
+      (text || '').replace(/\[\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}]\s*/g, '')
     )
   })
 
@@ -82,7 +84,7 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    shell.openExternal(details.url).then((r) => console.log(r))
     return { action: 'deny' }
   })
 
