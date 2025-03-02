@@ -2,10 +2,9 @@ import path from 'path'
 import { WaveFile } from 'wavefile'
 import * as os from 'node:os'
 import * as fs from 'node:fs'
-import { promisify } from 'node:util'
-import whisperNode from '/resources/whisper/whisper.node'
+import { transcribe } from 'whisper-node-addon/dist'
 
-const modelPath = path.resolve('./resources/models/ggml-tiny.bin')
+const modelPath = path.resolve('./resources/models/ggml-base.bin')
 
 export const useWhisper = async (audioData: Uint8Array) => {
   console.log('Received audio length:', audioData.length)
@@ -25,26 +24,20 @@ export const useWhisper = async (audioData: Uint8Array) => {
   // 4. 将音频数据写入临时文件
   fs.writeFileSync(tempFilePath, wavBuffer)
 
-  const { whisper } = whisperNode
-  const whisperAsync = promisify(whisper)
-
   console.log('model_path', modelPath)
   console.log('fname_inp', tempFilePath)
 
-  // 基础配置
-  const whisperParams = {
-    language: 'auto',
-    model: modelPath,
-    fname_inp: tempFilePath,
-    use_gpu: true,
-    flash_attn: false,
-    no_prints: true,
-    comma_in_time: false,
-    translate: false,
-    no_timestamps: true,
-    audio_ctx: 0,
-    max_len: 0
+  try {
+    const result = await transcribe({
+      language: 'zh',
+      model: modelPath,
+      fname_inp: tempFilePath,
+      translate: false
+    })
+    console.log('这是', result)
+    return result.reduce((pre, cur) => pre + (cur[2] || ''), '')
+  } catch (err) {
+    console.error('Error:', err)
+    return ''
   }
-  const result: string[][] = await whisperAsync(whisperParams)
-  return result.reduce((pre, cur) => pre + (cur[2] || ''), '')
 }
